@@ -11,6 +11,8 @@ export default function Home() {
   const [playlist, setPlaylist] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [spotifyResult, setSpotifyResult] = useState<any>(null);
+  const [creatingPlaylist, setCreatingPlaylist] = useState(false);
 
   async function handleGenerate() {
     if (!series.trim()) {
@@ -18,15 +20,42 @@ export default function Home() {
       setPlaylist(null);
       return;
     }
+
     setValidationError("");
+    setSpotifyResult(null);
     setLoading(true);
 
     const response = await fetch(
-      `http://127.0.0.1:8000/generate?series=${encodeURIComponent(series)}&duration_minutes=${durationMinutes}`
+      `http://127.0.0.1:8000/generate?series=${encodeURIComponent(
+        series
+      )}&duration_minutes=${durationMinutes}`
     );
+
     const data = await response.json();
     setPlaylist(data);
     setLoading(false);
+  }
+
+  async function handleAddToSpotify() {
+    setCreatingPlaylist(true);
+
+    const response = await fetch("http://127.0.0.1:8000/create-playlist", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: playlist.title,
+        songs: playlist.songs.map((s: any) => ({
+          name: s.name,
+          artist: s.artist,
+        })),
+      }),
+    });
+
+    const data = await response.json();
+    setSpotifyResult(data);
+    setCreatingPlaylist(false);
   }
 
   function displayLabel(minutes: number) {
@@ -38,7 +67,15 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
-      <h1 className="text-3xl font-bold mb-6">🎵 StoryTunes</h1>
+      <h1 className="text-3xl font-bold mb-4">🎵 StoryTunes</h1>
+
+      {/* Connect Spotify */}
+      <a
+        href="http://127.0.0.1:8000/login"
+        className="text-sm text-green-400 underline mb-6"
+      >
+        Connect Spotify
+      </a>
 
       <input
         type="text"
@@ -86,29 +123,78 @@ export default function Home() {
         <div className="mt-8 text-center max-w-xl">
           <h2 className="text-2xl font-bold">{playlist.title}</h2>
           <p className="text-gray-400 mb-4">{playlist.theme}</p>
+
           <ul>
             {playlist.songs?.map((song: any, i: number) => (
               <li key={i} className="mb-2">
-                <span className="font-semibold">{song.name}</span> — {song.artist}
+                <span className="font-semibold">{song.name}</span> —{" "}
+                {song.artist}
+
                 {song.genre && (
-                  <span className="text-xs bg-purple-800 px-2 py-0.5 rounded ml-2">{song.genre}</span>
+                  <span className="text-xs bg-purple-800 px-2 py-0.5 rounded ml-2">
+                    {song.genre}
+                  </span>
                 )}
-                <div className="text-sm text-gray-500">{song.reason}</div>
+
+                <div className="text-sm text-gray-500">
+                  {song.reason}
+                </div>
               </li>
             ))}
           </ul>
+
+          <button
+            onClick={handleAddToSpotify}
+            className="mt-6 bg-green-600 px-6 py-2 rounded font-semibold"
+          >
+            {creatingPlaylist
+              ? "Adding to Spotify..."
+              : "Add to Spotify"}
+          </button>
+
+          {spotifyResult?.playlist_url && (
+            <p className="mt-4">
+              <a
+                href={spotifyResult.playlist_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-400 underline"
+              >
+                Open your playlist on Spotify
+              </a>
+
+              <br />
+
+              <span className="text-sm text-gray-500">
+                Found {spotifyResult.tracks_found} of{" "}
+                {spotifyResult.tracks_requested} songs
+              </span>
+            </p>
+          )}
+
+          {spotifyResult?.error === "not_connected" && (
+            <p className="mt-4 text-yellow-400">
+              Please click "Connect Spotify" above first, then try again.
+            </p>
+          )}
         </div>
       )}
 
-      {playlist && playlist.error === "unrecognized_series" && (
-        <p className="mt-6 text-yellow-400">
-          I couldn't confidently recognize "{series}" as a movie, book, or show. Please check the spelling or try a different title.
-        </p>
-      )}
+      {playlist &&
+        playlist.error === "unrecognized_series" && (
+          <p className="mt-6 text-yellow-400">
+            I couldn't confidently recognize "{series}" as a movie, book,
+            or show. Please check the spelling or try a different title.
+          </p>
+        )}
 
-      {playlist && playlist.error && playlist.error !== "unrecognized_series" && (
-        <p className="mt-6 text-red-400">Something went wrong generating the playlist. Try again.</p>
-      )}
+      {playlist &&
+        playlist.error &&
+        playlist.error !== "unrecognized_series" && (
+          <p className="mt-6 text-red-400">
+            Something went wrong generating the playlist. Try again.
+          </p>
+        )}
     </main>
   );
 }

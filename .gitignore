@@ -15,3 +15,5 @@ frontend/.env.local
 # OS junk
 .DS_Store
 Thumbs.db
+
+backend/.spotify_cache
