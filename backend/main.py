@@ -122,6 +122,11 @@ def spotify_callback(code: str):
     # Send the user back to your frontend after Spotify approves access
     return RedirectResponse("http://localhost:3000?spotify_connected=true")
 
+@app.get("/spotify-status")
+def spotify_status():
+    token_info = sp_oauth.get_cached_token()
+    return {"connected": token_info is not None}
+
 
 class Song(BaseModel):
     name: str
