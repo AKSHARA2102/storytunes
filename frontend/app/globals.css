@@ -1,57 +1,215 @@
 @import "tailwindcss";
 
+/* Define the custom dark variant for Tailwind CSS v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8f9fa;
+  --foreground: #09090b;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --accent-red: #e50914;
+  --accent-green: #1db954;
+  --accent-gradient: linear-gradient(135deg, #e50914 0%, #1db954 100%);
+  --slider-thumb: #1db954;
+  
+  /* Spatial Mesh Grid Colors */
+  --grid-color: rgba(9, 9, 11, 0.025);
+  --glow-1: rgba(229, 9, 20, 0.04);
+  --glow-2: rgba(29, 185, 84, 0.03);
+}
+
+.dark {
+  --background: #08080a;
+  --foreground: #f4f4f5;
+  --card-bg: rgba(20, 20, 25, 0.65);
+  --card-border: rgba(255, 255, 255, 0.08);
+  
+  /* Spatial Mesh Grid Colors - Dark */
+  --grid-color: rgba(255, 255, 255, 0.015);
+  --glow-1: rgba(229, 9, 20, 0.08);
+  --glow-2: rgba(29, 185, 84, 0.06);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-outfit), sans-serif;
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Cinematic Grid Mesh Background */
+  background-image: 
+    radial-gradient(circle at 20% 30%, var(--glow-1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, var(--glow-2) 0%, transparent 50%),
+    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 45px 45px, 45px 45px;
+  background-attachment: fixed;
+}
+
+/* Custom Scrollbar for modern music-app feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.4);
+}
+
+/* Keyframe Animations */
+@keyframes float-slow-1 {
+  0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+  50% { transform: translateY(-30px) translateX(20px) scale(1.05); }
+}
+
+@keyframes float-slow-2 {
+  0%, 100% { transform: translateY(0px) translateX(0px) scale(1.05); }
+  50% { transform: translateY(40px) translateX(-15px) scale(0.95); }
+}
+
+@keyframes float-slow-3 {
+  0%, 100% { transform: translateY(0px) translateX(0px) scale(0.95); }
+  50% { transform: translateY(-20px) translateX(-30px) scale(1.02); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(110vh) scale(0.8) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.25;
+  }
+  85% {
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateY(-20vh) scale(1.3) rotate(360deg);
+    opacity: 0;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes track-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px) translateX(0px); }
-  50% { transform: translateY(-20px) translateX(10px); }
+.animate-float-1 {
+  animation: float-slow-1 15s ease-in-out infinite;
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+.animate-float-2 {
+  animation: float-slow-2 20s ease-in-out infinite;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.animate-float-3 {
+  animation: float-slow-3 18s ease-in-out infinite;
 }
 
-.animate-float {
-  animation: float 8s ease-in-out infinite;
+.animate-bubble-float {
+  animation: float-up infinite linear;
 }
 
-.animate-float-slow {
-  animation: float 12s ease-in-out infinite reverse;
+.animate-track-fade {
+  animation: track-entrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out both;
+/* Vinyl Platter Grooves */
+.vinyl-grooves {
+  background: repeating-radial-gradient(
+    circle at center,
+    #111 0px,
+    #111 4px,
+    #18181b 5px,
+    #222 9px,
+    #111 10px
+  );
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out both;
+.dark .vinyl-grooves {
+  background: repeating-radial-gradient(
+    circle at center,
+    #020202 0px,
+    #020202 4px,
+    #0d0d0d 5px,
+    #121212 9px,
+    #020202 10px
+  );
+}
+
+/* Custom range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: rgba(120, 120, 120, 0.2);
+  height: 4px;
+  border-radius: 2px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -6px;
+  background-color: var(--foreground);
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  transition: transform 0.1s ease, background-color 0.2s ease;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  background-color: #1db954;
+  transform: scale(1.2);
+}
+
+/* Firefox support */
+input[type="range"]::-moz-range-track {
+  background: rgba(120, 120, 120, 0.2);
+  height: 4px;
+  border-radius: 2px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background-color: var(--foreground);
+  border: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  transition: transform 0.1s ease, background-color 0.2s ease;
+}
+
+input[type="range"]:hover::-moz-range-thumb {
+  background-color: #1db954;
+  transform: scale(1.2);
 }

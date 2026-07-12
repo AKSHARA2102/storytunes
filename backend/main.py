@@ -42,6 +42,7 @@ def read_root():
 
 
 @app.get("/generate")
+@app.get("/generate")
 def generate_playlist(series: str, duration_minutes: int = 30, attempt: int = 1):
     estimated_songs = round(duration_minutes / 3.5)
     estimated_songs = max(3, min(estimated_songs, 40))
@@ -105,10 +106,37 @@ Include exactly {estimated_songs} songs."""
     if playlist_data.get("error") == "unrecognized_series":
         return {"error": "unrecognized_series", "series": series}
 
+    # Enrich each song with real Spotify data (album art, track id) if a Spotify
+    # session exists. If not connected yet, songs are returned without art -
+    # the frontend falls back to a gradient tile in that case.
+    token_info = sp_oauth.get_cached_token()
+    if token_info:
+        sp = spotipy.Spotify(auth=token_info["access_token"])
+        for song in playlist_data.get("songs", []):
+            query = f"track:{song['name']} artist:{song['artist']}"
+            try:
+                results = sp.search(q=query, type="track", limit=1)
+                items = results["tracks"]["items"]
+                if items:
+                    track = items[0]
+                    song["spotify_track_id"] = track["id"]
+                    song["spotify_track_uri"] = track["uri"]
+                    images = track["album"]["images"]
+                    song["album_image_url"] = images[0]["url"] if images else None
+                else:
+                    song["spotify_track_id"] = None
+                    song["album_image_url"] = None
+            except Exception:
+                song["spotify_track_id"] = None
+                song["album_image_url"] = None
+    else:
+        for song in playlist_data.get("songs", []):
+            song["spotify_track_id"] = None
+            song["album_image_url"] = None
+
     playlist_data["series"] = series
     playlist_data["requested_duration"] = duration_minutes
     return playlist_data
-
 
 @app.get("/login")
 def spotify_login():
